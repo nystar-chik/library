@@ -1,0 +1,47 @@
+from django.shortcuts import render
+from rest_framework.generics import CreateAPIView
+from account.models import User
+from account.serializer import RegisterSerializer, loginSerializer
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.authtoken.models import Token
+from django.contrib.auth import login
+
+class Register(APIView):
+    def post(self, request):
+        serializer = RegisterSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        username = serializer.validated_data['username']
+        password = serializer.validated_data['password']
+        phone = serializer.validated_data['phone']
+
+        user = User.objects.create_user(
+            username = username,
+            password = password,
+            phone = phone,
+        )
+
+        token, created = Token.objects.get_or_create(user=user)
+
+        return Response(serializer.data)
+    
+class Login(APIView):
+    def post(self, request):
+        serializer = loginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        phone = serializer.validated_data['phone']
+
+        phone = User.objects.filter(phone=phone).first()
+
+        token, created = Token.objects.get_or_create(phone=phone)
+        
+        login(request, phone)
+        
+        return Response({'message' : 'Login successful', 'token' : token.key})
+    
+class Logout(APIView):
+    def post(self, request):
+        Token.objects.get(user=request.user).delete()
+
+        return Response({'message' : 'logout successful'})

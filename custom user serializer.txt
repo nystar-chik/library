@@ -1,0 +1,44 @@
+from rest_framework import serializers
+from account.models import User
+from django.contrib.auth import authenticate
+
+class RegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only = True)
+
+    class Meta:
+        model = User
+        fields = ['username', 'password', 'phone']
+
+    def validate_email(self,value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError('email уже существует')
+        return value
+    
+{
+"username":"nystrx",
+"password":"123456789",
+"phone":"+996551272761"
+}
+
+{
+"phone":"+9965512727611",
+"password":"123456789"
+}
+class loginSerializer(serializers.Serializer):
+    phone = serializers.CharField()
+    password = serializers.CharField(write_only = True)
+
+    def validate(self, attrs):
+        user =  authenticate(
+            phone = attrs['phone'],
+            password = attrs['password']
+        )
+
+        if user is None:
+            raise serializers.ValidationError(
+                'Not correct username or password'
+            )
+        
+        attrs['user'] = user
+
+        return attrs

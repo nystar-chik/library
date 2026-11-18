@@ -1,0 +1,680 @@
+﻿=== C:\Users\Admin\Documents\DRF2mounth\manage.py ===
+#!/usr/bin/env python
+"""Django's command-line utility for administrative tasks."""
+import os
+import sys
+
+
+def main():
+    """Run administrative tasks."""
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project.settings')
+    try:
+        from django.core.management import execute_from_command_line
+    except ImportError as exc:
+        raise ImportError(
+            "Couldn't import Django. Are you sure it's installed and "
+            "available on your PYTHONPATH environment variable? Did you "
+            "forget to activate a virtual environment?"
+        ) from exc
+    execute_from_command_line(sys.argv)
+
+
+if __name__ == '__main__':
+    main()
+=== C:\Users\Admin\Documents\DRF2mounth\account\admin.py ===
+from django.contrib import admin
+from .models import User
+
+@admin.register(User)
+class CustomUserAdmin(admin.ModelAdmin):
+    ordering = ('id',)
+    list_display = (
+        'id',
+        'is_staff',
+        'username',
+    )
+    list_display_links = ['username']
+    search_fields = (
+        'email',
+    )
+    fieldsets = (
+        (
+            'РћСЃРЅРѕРІРЅР°СЏ РёС„РЅРѕСЂРјР°С†РёСЏ',
+            {
+                'fields':(
+                    'email',
+                    'password',
+                )
+            }
+        ),
+
+        (
+            'Р»РёС‡РЅР°СЏ РёРЅС„РѕСЂРјР°С†РёСЏ',
+            {
+                'fields':(
+                    'first_name',
+                    'last_name',
+                )
+            }
+        ),
+
+        (
+            'РїСЂР°РІР°',
+            {
+                'fields':(
+                    'is_active',
+                    'is_staff',
+                    'is_superuser',
+                    'groups',
+                    'user_permissions',
+                )
+            }
+        )
+    )
+
+    add_fieldsets = (
+        (
+            None,
+            {
+                'classes':('wide',),
+                'fields':(
+                    'email',
+                    'password1',
+                    'password2',
+                ),
+            },
+        ),
+    )
+=== C:\Users\Admin\Documents\DRF2mounth\account\apps.py ===
+from django.apps import AppConfig
+
+
+class AccountConfig(AppConfig):
+    name = 'account'
+=== C:\Users\Admin\Documents\DRF2mounth\account\manager.py ===
+from django.contrib.auth.models import UserManager as BaseUserManager
+
+class UserManager(BaseUserManager):
+
+    def create_user(self, phone, password=None, **extra_fields):
+
+        user = self.model(
+            phone=phone,
+            **extra_fields
+        )
+
+        user.set_password(password)
+        user.save(using=self._db)
+
+        return user
+
+    def create_superuser(self, phone, password=None, **extra_fields):
+
+        user = self.create_user(
+            phone=phone,
+            password=password,
+            **extra_fields
+        )
+
+        user.is_staff = True
+        user.is_superuser = True
+        user.save(using=self._db)
+
+        return user
+=== C:\Users\Admin\Documents\DRF2mounth\account\models.py ===
+from django.db import models
+from django.contrib.auth.models import AbstractUser
+from account.manager import UserManager
+
+
+class User(AbstractUser):
+    class Meta:
+        verbose_name = 'РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ'
+        verbose_name_plural = 'РџРѕР»СЊР·РѕРІР°С‚РµР»Рё'
+
+    phone = models.CharField(
+        max_length=20,
+        blank=True, 
+        unique=True
+    )
+
+    avatar = models.ImageField(
+        upload_to='static',
+        blank=True,
+        null=True
+    )
+
+    objects = UserManager()
+
+    USERNAME_FIELD = 'phone'
+    REQUIRED_FIELDS = ['first_name', 'username']
+=== C:\Users\Admin\Documents\DRF2mounth\account\permission.py ===
+=== C:\Users\Admin\Documents\DRF2mounth\account\serializer.py ===
+from rest_framework import serializers
+from account.models import User
+from django.contrib.auth import authenticate
+
+class RegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only = True)
+
+    class Meta:
+        model = User
+        fields = ['username', 'password', 'phone']
+
+    def validate_email(self,value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError('email СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚')
+        return value
+    
+{
+"username":"nystrx",
+"password":"123456789",
+"phone":"+996551272761"
+}
+
+{
+"phone":"+9965512727611",
+"password":"123456789"
+}
+class loginSerializer(serializers.Serializer):
+    phone = serializers.CharField()
+    password = serializers.CharField(write_only = True)
+
+    def validate(self, attrs):
+        user =  authenticate(
+            phone = attrs['phone'],
+            password = attrs['password']
+        )
+
+        if user is None:
+            raise serializers.ValidationError(
+                'Not correct username or password'
+            )
+        
+        attrs['user'] = user
+
+        return attrs
+=== C:\Users\Admin\Documents\DRF2mounth\account\tests.py ===
+from django.test import TestCase
+
+# Create your tests here.
+=== C:\Users\Admin\Documents\DRF2mounth\account\urls.py ===
+from django.urls import path
+from account.views import Register, Login
+
+urlpatterns = [
+    path('register/', Register.as_view()),
+    path('login/', Login.as_view())
+]
+=== C:\Users\Admin\Documents\DRF2mounth\account\views.py ===
+from django.shortcuts import render
+from rest_framework.generics import CreateAPIView
+from account.models import User
+from account.serializer import RegisterSerializer, loginSerializer
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.authtoken.models import Token
+from django.contrib.auth import login
+
+class Register(APIView):
+    def post(self, request):
+        serializer = RegisterSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        username = serializer.validated_data['username']
+        password = serializer.validated_data['password']
+        phone = serializer.validated_data['phone']
+
+        user = User.objects.create_user(
+            username = username,
+            password = password,
+            phone = phone,
+        )
+
+        token, created = Token.objects.get_or_create(user=user)
+
+        return Response(serializer.data)
+    
+class Login(APIView):
+    def post(self, request):
+        serializer = loginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        phone = serializer.validated_data['phone']
+
+        phone = User.objects.filter(phone=phone).first()
+
+        token, created = Token.objects.get_or_create(phone=phone)
+        
+        login(request, phone)
+        
+        return Response({'message' : 'Login successful', 'token' : token.key})
+    
+class Logout(APIView):
+    def post(self, request):
+        Token.objects.get(user=request.user).delete()
+
+        return Response({'message' : 'logout successful'})
+=== C:\Users\Admin\Documents\DRF2mounth\account\__init__.py ===
+=== C:\Users\Admin\Documents\DRF2mounth\apps\admin.py ===
+from django.contrib import admin
+from .models import Book, Category, Info, Teg
+
+admin.site.register(Book)
+admin.site.register(Category)
+admin.site.register(Info)
+admin.site.register(Teg)
+=== C:\Users\Admin\Documents\DRF2mounth\apps\apps.py ===
+from django.apps import AppConfig
+
+
+class AppsConfig(AppConfig):
+    name = 'apps'
+=== C:\Users\Admin\Documents\DRF2mounth\apps\mixins.py ===
+from rest_framework import generics, mixins
+
+class ProMixinsGenericsAPI(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
+    pass
+
+class ProMixinsDetailGenericsAPI(mixins.RetrieveModelMixin, mixins.DestroyModelMixin, mixins.UpdateModelMixin, generics.GenericAPIView):
+    pass
+=== C:\Users\Admin\Documents\DRF2mounth\apps\models.py ===
+from django.db import models
+
+class Category(models.Model):
+    class Meta:
+        verbose_name = 'РљР°С‚РµРіРѕСЂРёСЏ'
+        verbose_name_plural = 'РљР°С‚РµРіРѕСЂРёРё'
+
+    title = models.CharField("РќР°Р·РІР°РЅРёРµ", max_length=50)
+    
+    def __str__(self):
+        return self.title
+    
+class Info(models.Model):
+    class Meta:
+        verbose_name = 'РРЅС„РѕСЂРјР°С†РёСЏ'
+        verbose_name_plural = 'РРЅС„РѕСЂРјР°С†РёРё'
+
+    language = models.CharField("РЇР·С‹Рє", max_length=50, default='ru')
+    year = models.IntegerField("Р“РѕРґ")
+    pages = models.IntegerField("РЎС‚СЂР°РЅРёС†С‹")
+    country = models.CharField("РЎС‚СЂР°РЅР°", max_length=50)
+
+    def __str__(self):
+        return self.country
+    
+class Teg(models.Model):
+    class Meta:
+        verbose_name = 'РўРµРі'
+        verbose_name_plural = 'РўРµРіРё'
+
+    title = models.CharField("Р’РѕР·СЂР°СЃС‚РЅРѕРµ РєР°С‚РµРіРѕСЂРёСЏ", max_length=50)
+    age = models.DecimalField("Р’РѕР·СЂР°СЃС‚", max_digits=4, decimal_places=1)
+
+    def __str__(self):
+        return self.title
+
+class Book(models.Model):
+    RATING = (
+        ('1', 1),
+        ('2', 2),
+        ('3', 3),
+        ('4', 4),
+        ('5', 5),
+    )
+
+    class Meta:
+        verbose_name = 'РљРЅРёРіР°'
+        verbose_name_plural = 'РљРЅРёРіРё'
+
+    title = models.CharField("РќР°Р·РІР°РЅРёРµ", max_length=50)
+    description = models.TextField("РћРїРёСЃР°РЅРёРµ")
+    price = models.DecimalField("Р¦РµРЅР°", max_digits=10,decimal_places=2)
+    reating = models.CharField("Р РµР№С‚РёРЅРі", choices=RATING)
+    author = models.CharField("РђРІС‚РѕСЂ", max_length=50)
+    category = models.ForeignKey(Category, verbose_name="РљР°С‚РµРіРѕСЂРёСЏ", on_delete=models.CASCADE)
+    info = models.ForeignKey(Info, verbose_name="РРЅС„РѕСЂРјР°С†РёСЏ", on_delete=models.CASCADE, blank=True, null=True)
+    teg = models.ManyToManyField(Teg, verbose_name="РўРµРі")
+
+    def __str__(self):
+        return self.title
+=== C:\Users\Admin\Documents\DRF2mounth\apps\paginator.py ===
+from rest_framework.pagination import PageNumberPagination
+
+class BookPaginator(PageNumberPagination):
+    page_size = 3
+    page_size_query_param = 'page_size'
+    max_page_size = 5
+=== C:\Users\Admin\Documents\DRF2mounth\apps\serializer.py ===
+from rest_framework import serializers
+from .models import Book, Category, Info, Teg
+
+# class BookSerializer(serializers.Serializer):
+#     id = serializers.IntegerField(read_only = True)
+#     title = serializers.CharField(max_length = 50)
+#     description = serializers.CharField()
+#     price = serializers.DecimalField(max_digits=10, decimal_places=2)
+#     reating = serializers.ChoiceField(choices=Book.RATING)
+#     author = serializers.CharField(max_length=50)
+#     category = serializers.PrimaryKeyRelatedField(
+#         queryset = Category.objects.all()
+#     )
+#     info = serializers.PrimaryKeyRelatedField(
+#         queryset = Info.objects.all()
+#     )
+#     teg = serializers.PrimaryKeyRelatedField(
+#         queryset = Teg.objects.all(),
+#         many = True
+#     )
+
+class BookCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Book
+        fields = '__all__'
+    
+    def validate(self, attrs):
+        if attrs['price'] <=0:
+            raise serializers.ValidationError('price cant be 0 or lower than 0!')
+        return attrs
+    
+
+class BookSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Book
+        fields = '__all__'
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = '__all__'
+
+class InfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Info
+        fields = '__all__'
+
+class TegSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Teg
+        fields = '__all__'
+=== C:\Users\Admin\Documents\DRF2mounth\apps\tests.py ===
+from django.test import TestCase
+
+# Create your tests here.
+=== C:\Users\Admin\Documents\DRF2mounth\apps\urls.py ===
+from django.urls import path, include
+from .views import *
+from rest_framework import routers
+
+router = routers.DefaultRouter()
+router.register('book', BookModelViewSet)
+# router.register('category', CategoryModelViewSet)
+# router.register('info', InfoModelViewSet)
+# router.register('teg', TegModelViewSet)
+
+urlpatterns = [
+    path('', include(router.urls)),
+    # path('books/', BookViewSets.as_view({'get': 'list', 'post' : 'create'})),
+    # path('books/<int:pk>/', BookViewSets.as_view({'get' : 'retrieve', 'put' : 'update', 'patch' : 'partial_update', 'delete' : 'destroy'})),
+    # path('category/', CategoryViewSets.as_view({'get': 'list', 'post' : 'create'})),
+    # path('category/<int:pk>/', CategoryViewSets.as_view({'get' : 'retrieve', 'put' : 'update', 'patch' : 'partial_update', 'delete' : 'destroy'})),
+    # path('info/', InfoViewSets.as_view({'get': 'list', 'post' : 'create'})),
+    # path('info/<int:pk>/', InfoViewSets.as_view({'get' : 'retrieve', 'put' : 'update', 'patch' : 'partial_update', 'delete' : 'destroy'})),
+    # path('teg/', TegViewSets.as_view({'get': 'list', 'post' : 'create'})),
+    # path('teg/<int:pk>/', TegViewSets.as_view({'get' : 'retrieve', 'put' : 'update', 'patch' : 'partial_update', 'delete' : 'destroy'}))
+]
+=== C:\Users\Admin\Documents\DRF2mounth\apps\views.py ===
+from django.shortcuts import render
+from rest_framework.response import Response
+from .serializer import BookSerializer, BookCreateSerializer, CategorySerializer, InfoSerializer, TegSerializer
+from .models import Book, Category, Info, Teg
+from rest_framework.decorators import api_view
+from rest_framework import status
+from rest_framework.views import APIView
+from rest_framework.generics import GenericAPIView
+from .paginator import BookPaginator
+from rest_framework.filters import OrderingFilter, SearchFilter
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import generics, mixins
+from apps.mixins import ProMixinsGenericsAPI, ProMixinsDetailGenericsAPI
+from rest_framework.viewsets import ViewSet, ModelViewSet
+from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated, IsAuthenticatedOrReadOnly
+
+class BookModelViewSet(ModelViewSet):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+    pagination_class = BookPaginator
+    permission_classes = [IsAuthenticated]
+
+    @action(detail=False, methods=['GET'])
+    def expensive(self, request):
+        book = Book.objects.order_by('-price').first()
+        serializer = BookSerializer(book)
+        return Response({'the most expensive book: ' : serializer.data})
+    
+    @action(detail=False, methods=['GET'])
+    def cheap(self, request):
+        book = Book.objects.order_by('price').first()
+        serializer = self.get_serializer(book)
+        return Response({'the most cheap book: ' : serializer.data})
+    
+    @action(detail=True, methods=['POST'])
+    def change_reating(self, request, pk):
+        book = self.get_object()
+        book.rating = request.data.get(rating)
+        book.save()
+        return Response(book)
+            
+=== C:\Users\Admin\Documents\DRF2mounth\apps\__init__.py ===
+=== C:\Users\Admin\Documents\DRF2mounth\project\asgi.py ===
+"""
+ASGI config for project project.
+
+It exposes the ASGI callable as a module-level variable named ``application``.
+
+For more information on this file, see
+https://docs.djangoproject.com/en/6.1/howto/deployment/asgi/
+"""
+
+import os
+
+from django.core.asgi import get_asgi_application
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project.settings')
+
+application = get_asgi_application()
+=== C:\Users\Admin\Documents\DRF2mounth\project\settings.py ===
+"""
+Django settings for project project.
+
+Generated by 'django-admin startproject' using Django 6.1.2.
+
+For more information on this file, see
+https://docs.djangoproject.com/en/6.1/topics/settings/
+
+For the full list of settings and their values, see
+https://docs.djangoproject.com/en/6.1/ref/settings/
+"""
+
+from pathlib import Path
+from decouple import Csv, config
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = config('SECRET_KEY')
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = config('DEBUG', default = False, cast=bool)
+
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=[], cast=Csv())
+
+
+# Application definition
+
+INSTALLED_APPS = [
+    'jazzmin',
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+
+    'apps',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'django_filters',
+    'account',
+    'corsheaders',
+]
+
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+ROOT_URLCONF = 'project.urls'
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+
+WSGI_APPLICATION = 'project.wsgi.application'
+
+
+# Database
+# https://docs.djangoproject.com/en/6.1/ref/settings/#databases
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': config('NAME_DB'),
+        'USER': config('USER_DB'),
+        'PASSWORD' : config('PASSWORD_DB'),
+        'HOST' : config('HOST_DB'),
+        'PORT' : config('PORT_DB')
+    }
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+}
+
+
+AUTH_USER_MODEL = 'account.User'
+
+
+# Password validation
+# https://docs.djangoproject.com/en/6.1/ref/settings/#auth-password-validators
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
+
+
+# Internationalization
+# https://docs.djangoproject.com/en/6.1/topics/i18n/
+
+LANGUAGE_CODE = 'ru'
+
+TIME_ZONE = 'UTC'
+
+USE_I18N = True
+
+USE_TZ = True
+
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/6.1/howto/static-files/
+
+STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+
+# Email
+# https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
+
+MAILERS = {
+    'default': {
+        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
+    },
+}
+
+CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', cast=Csv())
+CORS_ALLOWED_CREDENTIALS = True
+CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
+=== C:\Users\Admin\Documents\DRF2mounth\project\urls.py ===
+from django.contrib import admin
+from django.urls import path, include
+from apps.urls import urlpatterns as app
+from account.urls import urlpatterns as account
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('api/v1/', include(app)),
+    path('api/v1/', include(account)),
+    path('api/v1/drf-auth/', include('rest_framework.urls'))
+]
+=== C:\Users\Admin\Documents\DRF2mounth\project\wsgi.py ===
+"""
+WSGI config for project project.
+
+It exposes the WSGI callable as a module-level variable named ``application``.
+
+For more information on this file, see
+https://docs.djangoproject.com/en/6.1/howto/deployment/wsgi/
+"""
+
+import os
+
+from django.core.wsgi import get_wsgi_application
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project.settings')
+
+application = get_wsgi_application()
+=== C:\Users\Admin\Documents\DRF2mounth\project\__init__.py ===

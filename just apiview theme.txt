@@ -1,0 +1,42 @@
+@api_view(['GET', 'POST'])
+def product(request):
+    if request.method == 'GET':
+        book = Book.objects.all()
+        serializer = BookSerializer(book, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    elif request.method == 'POST':
+        serializer = BookCreateSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+------------------------------------------------------------------------------------
+
+@api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
+def product_detaile(request, id):
+    product = Book.objects.get(id=id)
+
+    if request.method == 'GET':
+        serializer = BookSerializer(product)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+        
+    
+    elif request.method == 'PUT':
+        serializer = BookSerializer(product, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    elif request.method == 'PATCH':
+        serializer = BookSerializer(product, data=request.data, partial = True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+    elif request.method == 'DELETE':
+        product.delete()
+
+        return Response({'message' : 'success create'}, status=status.HTTP_200_OK)
+    

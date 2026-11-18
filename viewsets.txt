@@ -1,0 +1,173 @@
+class BookViewSets(ViewSet):
+    def list(self, request):
+        book = Book.objects.all()
+        serializer = BookSerializer(book, many = True)
+
+        return Response(serializer.data)
+    
+    def create(self, request):
+        serializer = BookSerializer(data = request.data)
+        if serializer.is_valid():
+            serializer.save()
+
+        return Response(serializer.data)
+    
+    def retrieve(self, request, pk):
+        book = Book.objects.get(pk=pk)
+        serializer = BookSerializer(book)
+
+        return Response(serializer.data)
+    
+    def update(self, request, pk):
+        book = Book.objects.get(pk=pk)
+        serializer = BookSerializer(book, data = request.data)
+        if serializer.is_valid():
+            serializer.save()
+
+        return Response(serializer.data)
+    
+    def partial_update(self, request, pk):
+        book = Book.objects.get(pk=pk)
+        serializer = BookSerializer(book, data = request.data, partial = True)
+        if serializer.is_valid():
+            serializer.save()
+
+        return Response(serializer.data)
+    
+    def destroy(self, request, pk):
+        book = Book.objects.get(pk=pk)
+        book.delete()
+
+        return Response({'message' : 'you book was deleted success!'})
+
+# --------------------------------------------------------------------------
+
+class CategoryViewSets(ViewSet):
+    def list(self, request):
+        book = Category.objects.all()
+        serializer = CategorySerializer(book, many = True)
+
+        return Response(serializer.data)
+    
+    def create(self, request):
+        serializer = CategorySerializer(data = request.data)
+        if serializer.is_valid():
+            serializer.save()
+
+        return Response(serializer.data)
+    
+    def retrieve(self, request, pk):
+        book = Category.objects.get(pk=pk)
+        serializer = CategorySerializer(book)
+
+        return Response(serializer.data)
+    
+    def update(self, request, pk):
+        book = Category.objects.get(pk=pk)
+        serializer = CategorySerializer(book, data = request.data)
+        if serializer.is_valid():
+            serializer.save()
+
+        return Response(serializer.data)
+    
+    def partial_update(self, request, pk):
+        book = Category.objects.get(pk=pk)
+        serializer = CategorySerializer(book, data = request.data, partial = True)
+        if serializer.is_valid():
+            serializer.save()
+
+        return Response(serializer.data)
+    
+    def destroy(self, request, pk):
+        book = Category.objects.get(pk=pk)
+        book.delete()
+
+        return Response({'message' : 'you category was deleted success!'})
+    
+# --------------------------------------------------------------------------
+
+class InfoViewSets(ViewSet):
+    def list(self, request):
+        book = Info.objects.all()
+        serializer = InfoSerializer(book, many = True)
+
+        return Response(serializer.data)
+    
+    def create(self, request):
+        serializer = InfoSerializer(data = request.data)
+        if serializer.is_valid():
+            serializer.save()
+
+        return Response(serializer.data)
+    
+    def retrieve(self, request, pk):
+        book = Info.objects.get(pk=pk)
+        serializer = InfoSerializer(book)
+
+        return Response(serializer.data)
+    
+    def update(self, request, pk):
+        book = Info.objects.get(pk=pk)
+        serializer = InfoSerializer(book, data = request.data)
+        if serializer.is_valid():
+            serializer.save()
+
+        return Response(serializer.data)
+    
+    def partial_update(self, request, pk):
+        book = Info.objects.get(pk=pk)
+        serializer = InfoSerializer(book, data = request.data, partial = True)
+        if serializer.is_valid():
+            serializer.save()
+
+        return Response(serializer.data)
+    
+    def destroy(self, request, pk):
+        book = Info.objects.get(pk=pk)
+        book.delete()
+
+        return Response({'message' : 'you info was deleted success!'})
+    
+# --------------------------------------------------------------------------
+
+class TegViewSets(ViewSet):
+    def list(self, request):
+        book = Teg.objects.all()
+        serializer = TegSerializer(book, many = True)
+
+        return Response(serializer.data)
+    
+    def create(self, request):
+        serializer = TegSerializer(data = request.data)
+        if serializer.is_valid():
+            serializer.save()
+
+        return Response(serializer.data)
+    
+    def retrieve(self, request, pk):
+        book = Teg.objects.get(pk=pk)
+        serializer = TegSerializer(book)
+
+        return Response(serializer.data)
+    
+    def update(self, request, pk):
+        book = Teg.objects.get(pk=pk)
+        serializer = TegSerializer(book, data = request.data)
+        if serializer.is_valid():
+            serializer.save()
+
+        return Response(serializer.data)
+    
+    def partial_update(self, request, pk):
+        book = Teg.objects.get(pk=pk)
+        serializer = TegSerializer(book, data = request.data, partial = True)
+        if serializer.is_valid():
+            serializer.save()
+
+        return Response(serializer.data)
+    
+    def destroy(self, request, pk):
+        book = Teg.objects.get(pk=pk)
+        book.delete()
+
+        return Response({'message' : 'you teg was deleted success!'})

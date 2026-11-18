@@ -1,0 +1,85 @@
+class BookGenericAPI(generics.ListCreateAPIView):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+    pagination_class = BookPaginator
+    filter_backends = [
+        DjangoFilterBackend,
+        OrderingFilter,
+        SearchFilter
+    ]
+
+    filterset_fields = ['category', 'reating']
+    search_fields = ['title', 'description', 'author']
+    ordering_fields = ['price', 'title']
+    ordering = ['title']
+
+class BookDetailGenericAPI(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+    lookup_field = 'id'
+
+----------------------------------------------------------------------
+
+class CategoryGenericAPI(generics.ListCreateAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    pagination_class = BookPaginator
+    filter_backends = [
+        DjangoFilterBackend,
+        OrderingFilter,
+        SearchFilter
+    ]
+
+    filterset_fields = ['category', 'reating']
+    search_fields = ['title', 'description', 'author']
+    ordering_fields = ['price', 'title']
+    ordering = ['title']
+
+class CategoryDetailGenericAPI(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    lookup_field = 'id'
+
+----------------------------------------------------------------------
+
+class InfoGenericAPI(generics.ListCreateAPIView):
+    queryset = Info.objects.all()
+    serializer_class = InfoSerializer
+    pagination_class = BookPaginator
+    filter_backends = [
+        DjangoFilterBackend,
+        OrderingFilter,
+        SearchFilter
+    ]
+
+    filterset_fields = ['category', 'reating']
+    search_fields = ['title', 'description', 'author']
+    ordering_fields = ['price', 'title']
+    ordering = ['title']
+
+class InfoDetailGenericAPI(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Info.objects.all()
+    serializer_class = InfoSerializer
+    lookup_field = 'id'
+
+----------------------------------------------------------------------
+
+class TegGenericAPI(generics.ListCreateAPIView):
+    queryset = Teg.objects.all()
+    serializer_class = TegSerializer
+    pagination_class = BookPaginator
+    filter_backends = [
+        DjangoFilterBackend,
+        OrderingFilter,
+        SearchFilter
+    ]
+
+    filterset_fields = ['category', 'reating']
+    search_fields = ['title', 'description', 'author']
+    ordering_fields = ['price', 'title']
+    ordering = ['title']
+
+class TegDetailGenericAPI(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Teg.objects.all()
+    serializer_class = TegSerializer
+    lookup_field = 'id'

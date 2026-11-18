@@ -1,0 +1,13 @@
+from rest_framework.filters import OrderingFilter, SearchFilter
+from django_filters.rest_framework import DjangoFilterBackend
+
+filter_backends = [
+        DjangoFilterBackend,
+        OrderingFilter,
+        SearchFilter
+    ]
+
+    filterset_fields = ['category', 'reating']
+    search_fields = ['title', 'description', 'author']
+    ordering_fields = ['price', 'title']
+    ordering = ['title']

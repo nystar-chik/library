@@ -1,0 +1,70 @@
+class BookModelViewSet(ModelViewSet):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+    pagination_class = BookPaginator
+
+    filter_backends = [
+        DjangoFilterBackend,
+        OrderingFilter,
+        SearchFilter
+    ]
+
+    filterset_fields = ['category', 'reating']
+    search_fields = ['title', 'description', 'author']
+    ordering_fields = ['price', 'title']
+    ordering = ['title']
+
+-------------------------------------------------------
+
+class CategoryModelViewSet(ModelViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    pagination_class = BookPaginator
+
+    filter_backends = [
+        DjangoFilterBackend,
+        OrderingFilter,
+        SearchFilter
+    ]
+
+    # filterset_fields = ['category', 'reating']
+    # search_fields = ['title', 'description', 'author']
+    # ordering_fields = ['price', 'title']
+    # ordering = ['title']
+
+-------------------------------------------------------
+
+class InfoModelViewSet(ModelViewSet):
+    queryset = Info.objects.all()
+    serializer_class = InfoSerializer
+    pagination_class = BookPaginator
+
+    filter_backends = [
+        DjangoFilterBackend,
+        OrderingFilter,
+        SearchFilter
+    ]
+
+    # filterset_fields = ['category',]
+    # search_fields = ['title', 'description', 'author']
+    # ordering_fields = ['price', 'title']
+    # ordering = ['title']
+
+-------------------------------------------------------
+
+
+class TegModelViewSet(ModelViewSet):
+    queryset = Teg.objects.all()
+    serializer_class = TegSerializer
+    pagination_class = BookPaginator
+
+    filter_backends = [
+        DjangoFilterBackend,
+        OrderingFilter,
+        SearchFilter
+    ]
+
+    # filterset_fields = ['category', 'reating']
+    # search_fields = ['title', 'description', 'author']
+    # ordering_fields = ['price', 'title']
+    # ordering = ['title']

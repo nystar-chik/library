@@ -1,0 +1,63 @@
+from rest_framework import serializers
+from account.models import User
+from django.contrib.auth import authenticate
+from .models import OTPCode
+
+class RegisterSerializer(serializers.Serializer):  
+    email = serializers.EmailField(required=True)
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError('Пользователь с таким email уже существует!')
+        return value
+    
+class VarifyOTPCodeSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField()
+    code = serializers.CharField(max_length=6)
+    phone = serializers.CharField()
+
+    def validate(self, attrs):
+        email = attrs['email']
+        code = attrs['code']
+
+        otp = OTPCode.objects.filter(email = email, code = code).first()
+
+        if not otp:
+            raise serializers.ValidationError({'message':'Такой код не найден'})
+        
+        if otp.is_expired():
+            otp.delete()
+
+            raise serializers.ValidationError({'message' : 'Срок истек'})
+        
+        attrs['otp'] = otp
+
+        return attrs
+    
+{
+"email":"abdykarovsyimyk001@gmail.com",
+"code":"404798",
+"new_password":"123456789"
+}
+            
+
+class LoginSerilaizer(serializers.Serializer):
+    phone = serializers.CharField()
+    password = serializers.CharField()
+
+    def validate(self, attrs):
+
+        user = authenticate(
+            phone = attrs['phone'],
+            password = attrs['password']
+        )
+
+        if user is None:
+            raise serializers.ValidationError('Invalid phone or password')
+        
+        attrs['user'] = user
+
+        return attrs    
+    
+

@@ -1,0 +1,213 @@
+class BookGenericAPIView(GenericAPIView):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+    pagination_class = BookPaginator
+    filter_backends = [
+        DjangoFilterBackend,
+        OrderingFilter,
+        SearchFilter
+    ]
+
+    filterset_fields = ['category', 'reating']
+    search_fields = ['title', 'description', 'author']
+    ordering_fields = ['price', 'title']
+    ordering = ['title']
+
+    def get(self, request):
+        book = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(book)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+    
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class BookDetailGenericAPIView(GenericAPIView):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+    lookup_field = 'id'
+    def get(self, request, id):
+        product = self.get_object()
+        serializer = self.get_serializer(product)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+        
+    
+    def put(self, request, id):
+        product = self.get_object()
+        serializer = self.get_serializer(product, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def patch(self, request, id):
+        product = self.get_object()
+        serializer = self.get_serializer(product, data=request.data, partial = True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    def delete(self, request, id):
+        product = self.get_object()
+        product.delete()
+
+        return Response({'message' : 'success delete!'}, status=status.HTTP_200_OK)
+    
+# -------------------------------------------------------------------------------------
+
+class CategoryGenericAPIView(GenericAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
+    def get(self, request):
+        book = self.get_queryset()
+        serializer = self.get_serializer(book, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class CategoryDetailGenericAPIView(GenericAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    lookup_field = 'id'
+    def get(self, request, id):
+        product = self.get_object()
+        serializer = self.get_serializer(product)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+        
+    
+    def put(self, request, id):
+        product = self.get_object()
+        serializer = self.get_serializer(product, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def patch(self, request, id):
+        product = self.get_object()
+        serializer = self.get_serializer(product, data=request.data, partial = True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    def delete(self, request, id):
+        product = self.get_object()
+        product.delete()
+
+        return Response({'message' : 'success delete!'}, status=status.HTTP_200_OK)
+    
+# ----------------------------------------------------------------------------------------
+
+class InfoGenericAPIView(GenericAPIView):
+    queryset = Info.objects.all()
+    serializer_class = InfoSerializer
+
+    def get(self, request):
+        book = self.get_queryset()
+        serializer = self.get_serializer(book, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class InfoDetailGenericAPIView(GenericAPIView):
+    queryset = Info.objects.all()
+    serializer_class = InfoSerializer
+    lookup_field = 'id'
+    def get(self, request, id):
+        product = self.get_object()
+        serializer = self.get_serializer(product)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+        
+    
+    def put(self, request, id):
+        product = self.get_object()
+        serializer = self.get_serializer(product, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def patch(self, request, id):
+        product = self.get_object()
+        serializer = self.get_serializer(product, data=request.data, partial = True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    def delete(self, request, id):
+        product = self.get_object()
+        product.delete()
+
+        return Response({'message' : 'success delete!'}, status=status.HTTP_200_OK)
+    
+# ------------------------------------------------------------------------------------
+
+class TegGenericAPIView(GenericAPIView):
+    queryset = Teg.objects.all()
+    serializer_class = TegSerializer
+
+    def get(self, request):
+        book = self.get_queryset()
+        serializer = self.get_serializer(book, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class TegDetailGenericAPIView(GenericAPIView):
+    queryset = Teg.objects.all()
+    serializer_class = TegSerializer
+    lookup_field = 'id'
+    def get(self, request, id):
+        product = self.get_object()
+        serializer = self.get_serializer(product)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+        
+    
+    def put(self, request, id):
+        product = self.get_object()
+        serializer = self.get_serializer(product, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def patch(self, request, id):
+        product = self.get_object()
+        serializer = self.get_serializer(product, data=request.data, partial = True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    def delete(self, request, id):
+        product = self.get_object()
+        product.delete()
+
+        return Response({'message' : 'success delete!'}, status=status.HTTP_200_OK)

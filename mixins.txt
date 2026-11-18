@@ -1,0 +1,26 @@
+class BookCreateAPI(ProMixinsGenericsAPI):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+
+    def get(self, request,*args, **kwargs):
+        return self.list(self, request,*args, **kwargs)
+    
+    def post(self, request,*args, **kwargs):
+        return self.create(self, request,*args, **kwargs)
+    
+class BookDetailCreateAPI(ProMixinsDetailGenericsAPI):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+    lookup_field = 'id'
+
+    def get(self, request,*args, **kwargs):
+        return self.retrieve(self, request, *args, **kwargs)
+    
+    def put(self, request,*args, **kwargs):
+        return self.update(self, request, *args, **kwargs)
+    
+    def patch(self, request,*args, **kwargs):
+        return self.partial_update(self, request, *args, **kwargs)
+    
+    def delete(self, request,*args, **kwargs):
+        return self.destroy(self, request, *args, **kwargs)
